@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  train:
+    image: lighting-hydra:1.5.2
+    working_dir: /home/garden/Github/vfae
+    volumes: 
+      - /home/garden/Github/vfae:/home/garden/Github/vfae
+    runtime: nvidia
+    shm_size: 32gb
+      
