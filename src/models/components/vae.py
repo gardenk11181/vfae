@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from mlp import MultiLayerPerceptron
+from .mlp import MultiLayerPerceptron
 
 class VariationalEncoder(nn.Module):
     def __init__(
