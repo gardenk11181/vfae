@@ -39,9 +39,9 @@ class VariationalFairAutoEncoder(nn.Module):
 
         # if unsupervised case -> inpute data
         if len(inputs) == 3:
-            y = y_recon
-        else:
             y = inputs[2]
+        else:
+            y = y_recon
 
         # z2 | z1, s ~ N(f(z1,s), e^f(z1,s))
         z1_y = torch.cat([z1, y], dim=1)
@@ -64,7 +64,7 @@ class VariationalFairAutoEncoder(nn.Module):
 
                 'z2': z2,
                 'z2_mu': z2_mu,
-                'z2_logaar': z2_logvar,
+                'z2_logvar': z2_logvar,
 
                 'z1_recon': z1_recon,
                 'z1_recon_mu': z1_recon_mu,

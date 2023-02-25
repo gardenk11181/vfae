@@ -42,6 +42,7 @@ class VFAE(LightningModule):
             logvar = x_recon
             log_p = -0.5 * (x - mu)**2 / torch.exp(logvar) - 0.5 * logvar
 
+        log_p = torch.sum(log_p, dim=1)
         return log_p 
 
     def supervised_loss(self, batch):
@@ -58,33 +59,37 @@ class VFAE(LightningModule):
                                   zeros, zeros)
 
         loss = -log_p + z1_kl + z2_kl+ self.alpha * pred_loss
-        return loss
+        total_loss = torch.sum(loss, dim=0)
+
+        return total_loss
 
     def unsupervised_loss(self, batch):
         x, _ = batch
         outputs = self(batch)
 
-        y_pi = F.softmax(outputs['y_recon'])
-        y_kl = kl_bernoulli(y_pi, 0.5)
-        
-        log_p = self.log_p(x, outputs['x_recon'])
+        y_pi = torch.sigmoid(outputs['y_recon'])
+        one_half = torch.tensor([0.5], dtype=torch.float32).to(self.device)
+        y_kl = kl_bernoulli(y_pi, one_half.repeat([x.shape[0]]).reshape(-1,1)).reshape(-1)
+
+        log_p = self.log_p(x, outputs['x_recon']).reshape(-1)
 
         z1_kl= kl_gaussian(outputs['z1_mu'], outputs['z1_logvar'], 
-                                  outputs['z1_recon_mu'], outputs['z1_recon_logvar'])
+                                  outputs['z1_recon_mu'], outputs['z1_recon_logvar']).reshape(-1)
         zeros = torch.zeros_like(outputs['z2_mu'])
         z2_kl= kl_gaussian(outputs['z2_mu'], outputs['z2_logvar'],
-                           zeros, zeros)
+                           zeros, zeros).reshape(-1)
 
         loss = -log_p + z1_kl + z2_kl + y_kl
+        total_loss = torch.sum(loss, dim=0)
 
-        return loss
+        return total_loss 
 
     def training_step(self, batch: Any, batch_idx: int):
         sv_loss = self.supervised_loss(batch['source_train'])
         usv_loss = self.unsupervised_loss(batch['target_train'])
 
         loss = sv_loss + usv_loss
-        return {'train_loss': loss, 'supervised_loss': sv_loss, 'unsupervised_loss': usv_loss}
+        return {'loss': loss, 'supervised_loss': sv_loss, 'unsupervised_loss': usv_loss}
 
     def configure_optimizers(self):
         """Choose what optimizers and learning-rate schedulers to use in your optimization.
@@ -94,13 +99,13 @@ class VFAE(LightningModule):
             https://pytorch-lightning.readthedocs.io/en/latest/common/lightning_module.html#configure-optimizers
         """
         optimizer = self.hparams.optimizer(params=self.parameters())
-        if self.scheduler is not None:
+        if self.hparams.scheduler is not None:
             scheduler = self.hparams.scheduler(optimizer=optimizer)
             return {
                 "optimizer": optimizer,
                 "lr_scheduler": {
                     "scheduler": scheduler,
-                    "monitor": "val/loss",
+                    "monitor": "loss",
                     "interval": "epoch",
                     "frequency": 1,
                 },
