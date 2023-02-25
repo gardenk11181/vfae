@@ -1,0 +1,7 @@
+_target_: src.data.amazon_datamodule.AmazonDataModule
+data_dir: ${paths.data_dir}/amazon
+source: books
+target: dvd
+batch_size: 128
+num_workers: 16
+pin_memory: True 
