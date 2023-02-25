@@ -2,7 +2,7 @@ from typing import Any, Dict, Optional, Tuple, Union
 
 from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader, Dataset
-from components.amazon_dataset import Amazon
+from .components.amazon_dataset import Amazon
 
 class AmazonDataModule(LightningDataModule):
     def __init__(

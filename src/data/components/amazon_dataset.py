@@ -23,9 +23,9 @@ class Amazon(Dataset):
             self.y = None
 
         if idx == 0:
-            self.s = torch.zeros(0, dtype=torch.float32)
+            self.s = torch.tensor([0], dtype=torch.float32)
         else:
-            self.s = torch.zeros(1, dtype=torch.float32)
+            self.s = torch.tensor([1], dtype=torch.float32)
 
     def __len__(self):
         return len(self.x)
