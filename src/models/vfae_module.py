@@ -1,6 +1,7 @@
 from typing import Any, List
 
 import torch
+torch.set_float32_matmul_precision('high')
 from torch.nn import BCEWithLogitsLoss, CrossEntropyLoss
 import torch.nn.functional as F
 
@@ -89,7 +90,32 @@ class VFAE(LightningModule):
         usv_loss = self.unsupervised_loss(batch['target_train'])
 
         loss = sv_loss + usv_loss
+
+        self.log('train_loss', loss, on_step=False, on_epoch=True, prog_bar=True)
+        self.log('supervised_loss', sv_loss, on_step=False, on_epoch=True, prog_bar=True)
+        self.log('unsupervised_loss', usv_loss, on_step=False, on_epoch=True, prog_bar=True)
+
         return {'loss': loss, 'supervised_loss': sv_loss, 'unsupervised_loss': usv_loss}
+
+    def test_step(self, batch: Any, batch_idx: int):
+        outputs = self(batch)
+            
+        y_pi = torch.sigmoid(outputs['y_recon'])
+        pred_y = torch.round(y_pi)
+        
+        correct = pred_y == batch[2]
+        return {'correct': correct}
+
+    def test_epoch_end(self, test_step_outputs):
+        sum = 0
+        count = 0
+        for out in test_step_outputs:
+            sum += torch.sum(out['correct'])
+            count += len(out['correct'])
+        acc_y = sum / count
+
+        self.log('acc_y', acc_y, prog_bar=True)
+        return acc_y
 
     def configure_optimizers(self):
         """Choose what optimizers and learning-rate schedulers to use in your optimization.
@@ -105,7 +131,7 @@ class VFAE(LightningModule):
                 "optimizer": optimizer,
                 "lr_scheduler": {
                     "scheduler": scheduler,
-                    "monitor": "loss",
+                    "monitor": "train_loss",
                     "interval": "epoch",
                     "frequency": 1,
                 },
