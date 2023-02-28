@@ -6,7 +6,7 @@ defaults:
   - _self_
   - data: amazon.yaml
   - model: vfae.yaml
-  - callbacks: none.yaml
+  - callbacks: default.yaml
   - logger: tensorboard
   - trainer: default.yaml
   - paths: default.yaml

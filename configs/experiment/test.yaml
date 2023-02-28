@@ -7,7 +7,7 @@ exp_version: test
 defaults:
   - override /data: amazon.yaml
   - override /model: vfae.yaml
-  - override /callbacks: none.yaml
+  - override /callbacks: default.yaml
   - override /trainer: gpu.yaml
 
 # all parameters below will be merged with parameters from default configurations set above
@@ -24,4 +24,4 @@ trainer:
 
 model:
   optimizer:
-    lr: 0.005
+    lr: 0.001
