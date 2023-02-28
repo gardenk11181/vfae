@@ -50,7 +50,7 @@ class VFAE(LightningModule):
         x, _, y = batch
         outputs = self(batch)
 
-        pred_loss = self.ce(outputs['y_recon'], y)
+        pred_loss = self.bce(outputs['y_recon'], y)
         log_p = self.log_p(x, outputs['x_recon'])
 
         z1_kl= kl_gaussian(outputs['z1_mu'], outputs['z1_logvar'], 
@@ -60,6 +60,7 @@ class VFAE(LightningModule):
                                   zeros, zeros)
 
         loss = -log_p + z1_kl + z2_kl+ self.alpha * pred_loss
+        self.log('pred_loss', pred_loss, on_step=False, on_epoch=True, prog_bar=True)
         total_loss = torch.sum(loss, dim=0)
 
         return total_loss
