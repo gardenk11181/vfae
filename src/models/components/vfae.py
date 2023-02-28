@@ -56,20 +56,20 @@ class VariationalFairAutoEncoder(nn.Module):
         x_recon = self.x_dec(z1_recon_s)
 
         outputs = {
-                'z1': z1,
+                'z1': z1, #(B, z1_dim)
                 'z1_mu': z1_mu,
                 'z1_logvar': z1_logvar,
                 
-                'y_recon': y_recon,
+                'y_recon': y_recon, #(B, y_dim)
 
-                'z2': z2,
+                'z2': z2, #(B, z2_dim)
                 'z2_mu': z2_mu,
                 'z2_logvar': z2_logvar,
 
-                'z1_recon': z1_recon,
+                'z1_recon': z1_recon, #(B, z1_dim)
                 'z1_recon_mu': z1_recon_mu,
                 'z1_recon_logvar': z1_recon_logvar,
 
-                'x_recon': x_recon,
+                'x_recon': x_recon, #(B, x_dim)
                 }
         return outputs
