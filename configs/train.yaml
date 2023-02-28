@@ -7,7 +7,7 @@ defaults:
   - data: amazon.yaml
   - model: vfae.yaml
   - callbacks: default.yaml
-  - logger: tensorboard
+  - logger: tensorboard.yaml
   - trainer: default.yaml
   - paths: default.yaml
   - extras: default.yaml
@@ -28,7 +28,7 @@ defaults:
   - debug: null
 
 # task name, determines output directory path
-task_name: "train"
+# task_name: "train"
 
 # tags to help you identify your experiments
 # you can overwrite this in experiment configs
