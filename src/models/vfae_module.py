@@ -3,12 +3,12 @@ from typing import Any, List
 import torch
 torch.set_float32_matmul_precision('high')
 from torch.nn import BCEWithLogitsLoss, CrossEntropyLoss
-import torch.nn.functional as F
 
 from pytorch_lightning import LightningModule
 
 from .components.vfae import VariationalFairAutoEncoder
 from ..loss.kl_div import kl_gaussian, kl_bernoulli
+from ..loss.hsic import hsic
 
 class VFAE(LightningModule):
     def __init__(
@@ -16,6 +16,7 @@ class VFAE(LightningModule):
         net: VariationalFairAutoEncoder,
         distribution: str,
         alpha: int,
+        lamb: int,
         optimizer: torch.optim.Optimizer,
         scheduler: torch.optim.lr_scheduler._LRScheduler,
     ):
@@ -25,6 +26,7 @@ class VFAE(LightningModule):
         self.net = net
         self.distribution = distribution
         self.alpha = alpha
+        self.lamb = lamb
 
         self.ce = CrossEntropyLoss()
         self.bce = BCEWithLogitsLoss()
@@ -60,10 +62,9 @@ class VFAE(LightningModule):
                                   zeros, zeros)
 
         loss = -log_p + z1_kl + z2_kl+ self.alpha * pred_loss
-        self.log('pred_loss', pred_loss, on_step=False, on_epoch=True, prog_bar=True)
         total_loss = torch.sum(loss, dim=0)
 
-        return total_loss
+        return total_loss, outputs['z1']
 
     def unsupervised_loss(self, batch):
         x, _ = batch
@@ -84,17 +85,22 @@ class VFAE(LightningModule):
         loss = -log_p + z1_kl + z2_kl + y_kl
         total_loss = torch.sum(loss, dim=0)
 
-        return total_loss 
+        return total_loss, outputs['z1']
 
     def training_step(self, batch: Any, batch_idx: int):
-        sv_loss = self.supervised_loss(batch['source_train'])
-        usv_loss = self.unsupervised_loss(batch['target_train'])
+        sv_loss, sv_z1 = self.supervised_loss(batch['source_train'])
+        usv_loss, usv_z1 = self.unsupervised_loss(batch['target_train'])
 
-        loss = sv_loss + usv_loss
+        z1 = torch.cat([sv_z1, usv_z1], dim=0)
+        s = torch.cat([batch['source_train'][1], batch['target_train'][1]], dim=0)
+        hsic_loss = hsic(z1, s)
+
+        loss = sv_loss + usv_loss + self.lamb * hsic_loss
 
         self.log('train_loss', loss, on_step=False, on_epoch=True, prog_bar=True)
         self.log('supervised_loss', sv_loss, on_step=False, on_epoch=True, prog_bar=True)
         self.log('unsupervised_loss', usv_loss, on_step=False, on_epoch=True, prog_bar=True)
+        self.log('hsic_loss', hsic_loss, on_step=False, on_epoch=True, prog_bar=True)
 
         return {'loss': loss, 'supervised_loss': sv_loss, 'unsupervised_loss': usv_loss}
 
