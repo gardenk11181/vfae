@@ -12,7 +12,7 @@ for source in $domains; do
 		if [ $source != $target ]
 		then
 			python src/train.py experiment=$dataset/default \
-			data.source=$source data.target=$target trainer.max_epochs=1 \
+			data.source=$source data.target=$target trainer.max_epochs=100 \
 			domain=$source-$target 
 		fi
 	done
