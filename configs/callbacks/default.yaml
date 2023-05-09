@@ -7,7 +7,7 @@ defaults:
 
 model_checkpoint:
   dirpath: ${paths.output_dir}/checkpoints
-  filename: "epoch_{epoch:03d}"
+  filename: "best"
   monitor: "train_loss"
   mode: "min"
   save_last: True
@@ -16,7 +16,7 @@ model_checkpoint:
 early_stopping:
   monitor: "train_loss"
   patience: 100
-  mode: "max"
+  mode: "min"
 
 model_summary:
   max_depth: 2
