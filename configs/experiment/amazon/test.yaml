@@ -1,7 +1,7 @@
 # @package _global_
 
 dataset: amazon
-version: default 
+version: test 
 domain: books-dvd
 
 defaults:
@@ -20,7 +20,7 @@ trainer:
   gradient_clip_val: 0.5
 
 model:
-  lamb_mmd: 0
+  lamb_mmd: 10000
   lamb_hsic: 10000
   net:
     x_dim: 1000

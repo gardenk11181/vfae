@@ -9,6 +9,7 @@ from pytorch_lightning import LightningModule
 from .components.vfae import VariationalFairAutoEncoder
 from ..loss.kl_div import kl_gaussian, kl_bernoulli
 from ..loss.hsic import hsic
+from ..loss.mmd import fast_mmd
 
 class VFAE(LightningModule):
     def __init__(
@@ -16,7 +17,8 @@ class VFAE(LightningModule):
         net: VariationalFairAutoEncoder,
         distribution: str,
         alpha: int,
-        lamb: int,
+        lamb_mmd: int,
+        lamb_hsic: int,
         optimizer: torch.optim.Optimizer,
         scheduler: torch.optim.lr_scheduler._LRScheduler,
     ):
@@ -26,7 +28,8 @@ class VFAE(LightningModule):
         self.net = net
         self.distribution = distribution
         self.alpha = alpha
-        self.lamb = lamb
+        self.lamb_mmd = lamb_mmd
+        self.lamb_hsic = lamb_hsic
 
         self.ce = CrossEntropyLoss()
         self.bce = BCEWithLogitsLoss()
@@ -93,13 +96,15 @@ class VFAE(LightningModule):
 
         z1 = torch.cat([sv_z1, usv_z1], dim=0)
         s = torch.cat([batch['source_train'][1], batch['target_train'][1]], dim=0)
+        mmd_loss = fast_mmd(sv_z1, usv_z1)
         hsic_loss = hsic(z1, s)
 
-        loss = sv_loss + usv_loss + self.lamb * hsic_loss
+        loss = sv_loss + usv_loss + self.lamb_mmd * mmd_loss + self.lamb_hsic * hsic_loss
 
         self.log('train_loss', loss, on_step=False, on_epoch=True, prog_bar=True)
         self.log('supervised_loss', sv_loss, on_step=False, on_epoch=True, prog_bar=True)
         self.log('unsupervised_loss', usv_loss, on_step=False, on_epoch=True, prog_bar=True)
+        self.log('mmd_loss', mmd_loss, on_step=False, on_epoch=True, prog_bar=True)
         self.log('hsic_loss', hsic_loss, on_step=False, on_epoch=True, prog_bar=True)
 
         return {'loss': loss, 'supervised_loss': sv_loss, 'unsupervised_loss': usv_loss}
