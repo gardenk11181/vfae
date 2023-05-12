@@ -96,10 +96,10 @@ class VFAE(LightningModule):
 
         z1 = torch.cat([sv_z1, usv_z1], dim=0)
         s = torch.cat([batch['source_train'][1], batch['target_train'][1]], dim=0)
-        mmd_loss = fast_mmd(sv_z1, usv_z1)
-        hsic_loss = hsic(z1, s)
+        mmd_loss = self.lamb_mmd * fast_mmd(sv_z1, usv_z1)
+        hsic_loss = self.lamb_hsic * hsic(z1, s)
 
-        loss = sv_loss + usv_loss + self.lamb_mmd * mmd_loss + self.lamb_hsic * hsic_loss
+        loss = sv_loss + usv_loss + mmd_loss +  hsic_loss
 
         self.log('train_loss', loss, on_step=False, on_epoch=True, prog_bar=True)
         self.log('supervised_loss', sv_loss, on_step=False, on_epoch=True, prog_bar=True)
@@ -128,6 +128,11 @@ class VFAE(LightningModule):
 
         self.log('acc_y', acc_y, prog_bar=True)
         return acc_y
+
+    def predict_step(self, batch, batch_idx):
+        outputs = self(batch)
+
+        return {'z1': outputs['z1'], 's': batch[1]}
 
     def configure_optimizers(self):
         optimizer = self.hparams.optimizer(params=self.parameters())
