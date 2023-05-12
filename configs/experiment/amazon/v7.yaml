@@ -1,0 +1,34 @@
+# @package _global_
+
+dataset: amazon
+version: v7
+domain: books-dvd
+
+defaults:
+  - override /data: amazon.yaml
+  - override /model: vfae.yaml
+  - override /callbacks: default.yaml
+  - override /trainer: gpu.yaml
+
+tags: ["vfae", "amazon"]
+
+seed: 12345
+
+trainer:
+  min_epochs: 10
+  max_epochs: 100
+  gradient_clip_val: 0.5
+
+model:
+  lamb_mmd: 1000000
+  lamb_hsic: 1000000
+  net:
+    x_dim: 1000
+    z1_dim: 50
+    z2_dim: 50
+    z1_enc_dim: 500
+    z2_enc_dim: 300
+    z1_dec_dim: 100
+    x_dec_dim: 400
+  optimizer:
+    lr: 0.001
