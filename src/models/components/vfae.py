@@ -15,16 +15,23 @@ class VariationalFairAutoEncoder(nn.Module):
             z2_enc_dim: int = 300, # hidden units of z2 encoder
             z1_dec_dim: int = 100, # hidden units of z1 decoder
             x_dec_dim: int = 400, # hidden units of x decoder
-            activation: nn.Module = nn.ReLU()
+            activation: nn.Module = nn.ReLU(),
+            n_hidden: int = 0,
+            res_connect: bool = False,
     ) -> None:
         super().__init__()
 
-        self.z1_enc = VariationalEncoder(x_dim + s_dim, z1_enc_dim, z1_dim, activation)
-        self.z2_enc = VariationalEncoder(z1_dim + y_dim, z2_enc_dim, z2_dim, activation)
-        self.z1_dec = VariationalEncoder(z2_dim + y_dim, z1_dec_dim, z1_dim, activation)
+        self.z1_enc = VariationalEncoder(
+                x_dim + s_dim, z1_enc_dim, z1_dim, activation, n_hidden, res_connect)
+        self.z2_enc = VariationalEncoder(
+                z1_dim + y_dim, z2_enc_dim, z2_dim, activation, n_hidden, res_connect)
+        self.z1_dec = VariationalEncoder(
+                z2_dim + y_dim, z1_dec_dim, z1_dim, activation, n_hidden, res_connect)
 
-        self.x_dec = VariationalDecoder(z1_dim + s_dim, x_dec_dim , x_dim, activation)
-        self.y_dec = VariationalDecoder(z1_dim, x_dec_dim, y_dim, activation)
+        self.x_dec = VariationalDecoder(
+                z1_dim + s_dim, x_dec_dim , x_dim, activation, n_hidden, res_connect)
+        self.y_dec = VariationalDecoder(
+                z1_dim, x_dec_dim, y_dim, activation, n_hidden, res_connect)
 
     def forward(self, inputs): #(B, x_dim), (B, s_dim), (B, y_dim) | (B, x_dim), (B, s_dim)
         x = inputs[0]

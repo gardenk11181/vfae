@@ -9,11 +9,14 @@ class VariationalEncoder(nn.Module):
             input_dim: int = 1000,
             hidden_dim: int = 128,
             z_dim: int = 8,
-            activation: nn.Module = nn.ReLU()
+            activation: nn.Module = nn.ReLU(),
+            n_hidden: int = 0,
+            res_connect: bool = False
     ) -> None:
         super().__init__()
 
-        self.encoder = MultiLayerPerceptron(input_dim, hidden_dim, hidden_dim, 0)
+        self.encoder = MultiLayerPerceptron(
+                input_dim, hidden_dim, hidden_dim, n_hidden, res_connect)
         self.activation = activation
         
         self.logvar_encoder = nn.Linear(hidden_dim, z_dim)
@@ -36,11 +39,14 @@ class VariationalDecoder(nn.Module):
             z_dim: int = 8,
             hidden_dim: int = 128,
             x_dim: int = 1000,
-            activation: nn.Module = nn.ReLU()
+            activation: nn.Module = nn.ReLU(),
+            n_hidden: int = 0,
+            res_connect: bool = False,
     ) -> None:
         super().__init__()
 
-        self.decoder = MultiLayerPerceptron(z_dim, hidden_dim, x_dim, 0)
+        self.decoder = MultiLayerPerceptron(
+                z_dim, hidden_dim, x_dim, n_hidden, res_connect)
 
     def forward(self, inputs):
         output = self.decoder(inputs)
