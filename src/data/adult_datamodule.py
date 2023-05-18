@@ -1,7 +1,8 @@
 from typing import Optional
 
+import torch
 from pytorch_lightning import LightningDataModule
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, random_split
 from .components.adult_dataset import Adult
 
 class AdultDataModule(LightningDataModule):
@@ -27,18 +28,27 @@ class AdultDataModule(LightningDataModule):
 
     def setup(self, stage: Optional[str] = None):
         if stage == "fit":
-            self.train = Adult(**self.dataset_kwargs, split='train')
+            train = Adult(**self.dataset_kwargs, split='train')
+            self.sv_train, self.usv_train = random_split(train, [15081, 15081], torch.Generator().manual_seed(42)) 
         else:
             self.test = Adult(**self.dataset_kwargs, split='test')
 
     def train_dataloader(self):
-        return DataLoader(
-                dataset=self.train,
+        sv_loader = DataLoader(
+                dataset=self.sv_train,
                 batch_size=self.batch_size,
                 num_workers=self.num_workers,
                 pin_memory=self.pin_memory,
                 shuffle=True
                 )
+        usv_loader = DataLoader(
+                dataset=self.usv_train,
+                batch_size=self.batch_size,
+                num_workers=self.num_workers,
+                pin_memory=self.pin_memory,
+                shuffle=True
+                )
+        return {'supervised': sv_loader, 'unsupervised': usv_loader}
 
     def test_dataloader(self):
         return DataLoader(
@@ -53,5 +63,5 @@ if __name__ == "__main__":
     amazon_datamodule = AdultDataModule(data_dir="./data/adult/")
     amazon_datamodule.setup(stage='fit')
     train_dataloader = amazon_datamodule.train_dataloader()
-    batch = next(iter(train_dataloader))
-    print(batch[0].shape)
+    batch = next(iter(train_dataloader['supervised']))
+    print(batch[1].shape)

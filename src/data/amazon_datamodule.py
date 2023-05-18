@@ -52,7 +52,7 @@ class AmazonDataModule(LightningDataModule):
                 pin_memory=self.pin_memory,
                 shuffle=True,
                 )
-        return {'source_train': source_train_loader, 'target_train': target_train_loader}
+        return {'supervised': source_train_loader, 'unsupervised': target_train_loader}
 
     def test_dataloader(self):
         return DataLoader(
@@ -67,6 +67,6 @@ if __name__ == "__main__":
     amazon_datamodule = AmazonDataModule(data_dir="./data/amazon/")
     amazon_datamodule.setup(stage='fit')
     train_dataloader = amazon_datamodule.train_dataloader()
-    source_train_loader = train_dataloader['source_train']
+    source_train_loader = train_dataloader['supervised']
     batch = next(iter(source_train_loader))
-    print(batch[0].shape)
+    print(batch[1].shape)

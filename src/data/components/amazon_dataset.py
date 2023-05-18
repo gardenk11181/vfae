@@ -36,5 +36,5 @@ class Amazon(Dataset):
             y = torch.as_tensor(self.y.iloc[index], dtype=torch.float32)
             return [x, self.s, y]
 
-        return [x, self.s]
+        return [x, self.s, 0] # dummy y
 
