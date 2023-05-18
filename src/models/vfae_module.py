@@ -34,8 +34,8 @@ class VFAE(LightningModule):
         self.ce = CrossEntropyLoss()
         self.bce = BCEWithLogitsLoss()
 
-    def forward(self, x: torch.Tensor):
-        return self.net(x)
+    def forward(self, x: torch.Tensor, supervised: bool):
+        return self.net(x, supervised)
 
     def log_p(self, x, x_recon):
         if self.distribution == 'poisson':
@@ -53,7 +53,7 @@ class VFAE(LightningModule):
 
     def supervised_loss(self, batch):
         x, _, y = batch
-        outputs = self(batch)
+        outputs = self(batch, True)
 
         pred_loss = self.bce(outputs['y_recon'], y)
         log_p = self.log_p(x, outputs['x_recon'])
@@ -70,8 +70,8 @@ class VFAE(LightningModule):
         return total_loss, outputs['z1']
 
     def unsupervised_loss(self, batch):
-        x, _ = batch
-        outputs = self(batch)
+        x, _, _ = batch
+        outputs = self(batch, False)
 
         y_pi = torch.sigmoid(outputs['y_recon'])
         one_half = torch.tensor([0.5], dtype=torch.float32).to(self.device)
@@ -91,11 +91,11 @@ class VFAE(LightningModule):
         return total_loss, outputs['z1']
 
     def training_step(self, batch: Any, batch_idx: int):
-        sv_loss, sv_z1 = self.supervised_loss(batch['source_train'])
-        usv_loss, usv_z1 = self.unsupervised_loss(batch['target_train'])
+        sv_loss, sv_z1 = self.supervised_loss(batch['supervised'])
+        usv_loss, usv_z1 = self.unsupervised_loss(batch['unsupervised'])
 
         z1 = torch.cat([sv_z1, usv_z1], dim=0)
-        s = torch.cat([batch['source_train'][1], batch['target_train'][1]], dim=0)
+        s = torch.cat([batch['supervised'][1], batch['unsupervised'][1]], dim=0)
         mmd_loss = self.lamb_mmd * fast_mmd(sv_z1, usv_z1)
         hsic_loss = self.lamb_hsic * hsic(z1, s)
 
@@ -110,7 +110,7 @@ class VFAE(LightningModule):
         return {'loss': loss, 'supervised_loss': sv_loss, 'unsupervised_loss': usv_loss}
 
     def test_step(self, batch: Any, batch_idx: int):
-        outputs = self(batch)
+        outputs = self(batch, supervised=True)
             
         y_pi = torch.sigmoid(outputs['y_recon'])
         pred_y = torch.round(y_pi)

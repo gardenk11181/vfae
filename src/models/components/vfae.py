@@ -33,7 +33,7 @@ class VariationalFairAutoEncoder(nn.Module):
         self.y_dec = VariationalDecoder(
                 z1_dim, x_dec_dim, y_dim, activation, n_hidden, res_connect)
 
-    def forward(self, inputs): #(B, x_dim), (B, s_dim), (B, y_dim) | (B, x_dim), (B, s_dim)
+    def forward(self, inputs, supervised): #(B, x_dim), (B, s_dim), (B, y_dim) | (B, x_dim), (B, s_dim)
         x = inputs[0]
         s = inputs[1]
 
@@ -45,7 +45,7 @@ class VariationalFairAutoEncoder(nn.Module):
         y_recon = self.y_dec(z1)
 
         # if unsupervised case -> inpute data
-        if len(inputs) == 3:
+        if supervised:
             y = inputs[2]
         else:
             y = y_recon
