@@ -2,7 +2,7 @@
 
 defaults:
   - _self_
-  - data: amazon.yaml # choose datamodule with `test_dataloader()` for evaluation
+  - data: null
   - model: vfae.yaml
   - callbacks: default.yaml
   - logger: null
