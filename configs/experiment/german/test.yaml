@@ -1,0 +1,36 @@
+# @package _global_
+
+dataset: german
+domain: 1
+version: test 
+
+defaults:
+  - override /data: german.yaml
+  - override /model: vfae.yaml
+  - override /callbacks: default.yaml
+  - override /trainer: gpu.yaml
+
+tags: ["vfae", "adult"]
+
+seed: 12345
+
+trainer:
+  min_epochs: 10
+  max_epochs: 100
+  gradient_clip_val: 0.5
+
+model:
+  lamb_mmd: 100000
+  lamb_hsic: 0
+  net:
+    x_dim: 121
+    z1_dim: 50
+    z2_dim: 50
+    z1_enc_dim: 100
+    z2_enc_dim: 100
+    z1_dec_dim: 100
+    x_dec_dim: 100
+  optimizer:
+    lr: 0.001
+  distribution: bernoulli
+  alpha: 1

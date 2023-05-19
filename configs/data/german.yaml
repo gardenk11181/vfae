@@ -1,0 +1,5 @@
+_target_: src.data.german_datamodule.GermanDataModule
+data_dir: ${paths.data_dir}/german
+batch_size: 100
+num_workers: 16
+pin_memory: True 
