@@ -53,8 +53,8 @@ def domain_adaptation(cfg: DictConfig) -> Tuple[dict, dict]:
 
     datamodule.setup('fit')
     train_loader = datamodule.train_dataloader()
-    src_train_loader = train_loader['source_train']
-    tar_train_loader = train_loader['target_train']
+    src_train_loader = train_loader['supervised']
+    tar_train_loader = train_loader['unsupervised']
     tar_test_loader = datamodule.test_dataloader()
     
     src_train_outputs = trainer.predict(model=model, dataloaders=src_train_loader, ckpt_path=cfg.ckpt_path)
@@ -96,7 +96,7 @@ def domain_adaptation(cfg: DictConfig) -> Tuple[dict, dict]:
     return metric_dict, object_dict
 
 
-@hydra.main(version_base="1.3", config_path="../configs", config_name="da.yaml")
+@hydra.main(version_base="1.3", config_path="../configs", config_name="domain_adapt.yaml")
 def main(cfg: DictConfig) -> None:
     domain_adaptation(cfg)
 
