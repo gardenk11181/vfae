@@ -26,10 +26,10 @@ model:
     x_dim: 84
     z1_dim: 50
     z2_dim: 50
-    z1_enc_dim: 100
-    z2_enc_dim: 100
-    z1_dec_dim: 100
-    x_dec_dim: 100
+    z1_enc_dim: 60
+    z2_enc_dim: 60
+    z1_dec_dim: 60
+    x_dec_dim: 60
   optimizer:
     lr: 0.001
   distribution: bernoulli
