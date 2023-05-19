@@ -130,7 +130,7 @@ class VFAE(LightningModule):
         return acc_y
 
     def predict_step(self, batch, batch_idx):
-        outputs = self(batch)
+        outputs = self(batch, False)
 
         return {'z1': outputs['z1'], 's': batch[1]}
 
