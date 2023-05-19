@@ -1,0 +1,5 @@
+_target_: src.data.health_datamodule.HealthDataModule
+data_dir: ${paths.data_dir}/health
+batch_size: 100
+num_workers: 16
+pin_memory: True 
