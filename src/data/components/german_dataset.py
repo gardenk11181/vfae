@@ -20,8 +20,8 @@ class German(Dataset):
 
     def __getitem__(self, index) -> List:
         item = self.df.iloc[index]
-        y = torch.as_tensor(item.pop('label'), dtype=torch.float32)
-        s = torch.as_tensor(item.pop('sex'), dtype=torch.float32)
+        y = torch.as_tensor(item.pop('label'), dtype=torch.float32).reshape(-1)
+        s = torch.as_tensor(item.pop('sex'), dtype=torch.float32).reshape(-1)
         x = torch.as_tensor(item, dtype=torch.float32)
 
         return [x, s, y]
